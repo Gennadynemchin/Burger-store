@@ -80,7 +80,7 @@ class Product(models.Model):
     )
     description = models.TextField(
         'описание',
-        max_length=200,
+        max_length=300,
         blank=True,
     )
 
@@ -125,10 +125,10 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
-    firstname = models.CharField(max_length=100)
-    lastname = models.CharField(max_length=100)
+    firstname = models.CharField(max_length=100, null=False)
+    lastname = models.CharField(max_length=100, null=False)
     phonenumber = PhoneNumberField()
-    address = models.CharField(max_length=200)
+    address = models.CharField(max_length=200, null=False)
 
     class Meta:
         verbose_name = 'заказ'
