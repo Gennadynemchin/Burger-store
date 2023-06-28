@@ -77,23 +77,23 @@ def register_order(request):
     address = frontend_data.get('address')
     products = frontend_data.get('products')
     validate_data = {"firstname": firstname, "lastname": lastname, "address": address}
-    error_attributes = set()
+    error_attributes = []
 
     for attribute_name, attribute_value in validate_data.items():
         if not attribute_value:
-            error_attributes.add(attribute_name)
+            error_attributes.append({"error": f"{attribute_name} has not been found"})
         if type(attribute_value) != str:
-            error_attributes.add(attribute_name)
+            error_attributes.append({"error": f"{attribute_name} has invalid data type. Must be string"})
     if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
-        error_attributes.add('Phonenumber is not valid')
+        error_attributes.append({"error": f"phonenumber {phonenumber} is not valid"})
     if not isinstance(products, list):
-        error_attributes.add('Products must be in list')
+        error_attributes.append({"error": "products must be stored in list"})
     for product in products:
         is_product_exists = Product.objects.filter(id=product['product'])
         if not is_product_exists:
-            error_attributes.add('Validation error. Requested product does not exist')
+            error_attributes.append({"error": f"product does not exist"})
     if error_attributes:
-        response = {"error": f"The following elements are not found or used invalid data: {error_attributes}"}
+        response = {"status": error_attributes}
         return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     else:
