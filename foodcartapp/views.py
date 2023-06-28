@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 import json
 
 
@@ -63,15 +64,20 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     frontend_data = request.data
-    firstname = frontend_data['firstname']
-    lastname = frontend_data['lastname']
-    phonenumber = frontend_data['phonenumber']
-    address = frontend_data['address']
-    products = frontend_data['products']
-
-    order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
-    for product in products:
-        Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
-    print(frontend_data)
-    print(f'Заказ успешно добавлен: {order}, {order.items.all()}')
-    return Response({})
+    firstname = frontend_data.get('firstname')
+    lastname = frontend_data.get('lastname')
+    phonenumber = frontend_data.get('phonenumber')
+    address = frontend_data.get('address')
+    products = frontend_data.get('products')
+    if not products:
+        response = {"error": "Products has not been found"}
+        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
+    if not isinstance(products, list):
+        response = {"error": "Products must be stored in list"}
+        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
+    else:
+        order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
+        for product in products:
+            Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
+        response = {"status": "ok"}
+        return Response(response, status=status.HTTP_200_OK)
