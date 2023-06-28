@@ -7,6 +7,7 @@ from rest_framework import renderers, serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 from .models import Product, Order, Item
 import phonenumbers
+from phonenumbers import NumberParseException
 
 
 class PhoneNumberSerializer(serializers.Serializer):
@@ -80,12 +81,15 @@ def register_order(request):
     error_attributes = []
 
     for attribute_name, attribute_value in validate_data.items():
-        if not attribute_value:
-            error_attributes.append({"error": f"{attribute_name} has not been found"})
-        if type(attribute_value) != str:
-            error_attributes.append({"error": f"{attribute_name} has invalid data type. Must be string"})
-    if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
-        error_attributes.append({"error": f"phonenumber {phonenumber} is not valid"})
+        if not attribute_value or type(attribute_value) != str:
+            error_attributes.append({"error": f"{attribute_name} has invalid data type or does not exist. Must be string"})
+    try:
+        if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
+            error_attributes.append({"error": f"phonenumber is not valid"})
+    except NumberParseException:
+        error_attributes.append({"error": f"phonenumber is not recognized"})
+    if len(products) < 1:
+        error_attributes.append({"error": "products list cannot be empty"})
     if not isinstance(products, list):
         error_attributes.append({"error": "products must be stored in list"})
     for product in products:
@@ -100,5 +104,5 @@ def register_order(request):
         order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
         for product in products:
             Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
-        response = {"status": "ok"}
+        response = {"status": [{"200": "ok"}]}
         return Response(response, status=status.HTTP_200_OK)
