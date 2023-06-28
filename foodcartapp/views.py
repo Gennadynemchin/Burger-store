@@ -3,10 +3,17 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-import json
-
-
+from rest_framework import renderers, serializers
+from phonenumber_field.serializerfields import PhoneNumberField
 from .models import Product, Order, Item
+import phonenumbers
+
+
+class PhoneNumberSerializer(serializers.Serializer):
+    number = PhoneNumberField(region="RU")
+
+
+
 
 
 def banners_list_api(request):
@@ -69,17 +76,20 @@ def register_order(request):
     phonenumber = frontend_data.get('phonenumber')
     address = frontend_data.get('address')
     products = frontend_data.get('products')
-    validate_data = {"firstname": firstname, "lastname": lastname, "phonenumber": phonenumber, "address": address}
-    error_attributes = []
+    validate_data = {"firstname": firstname, "lastname": lastname, "address": address}
+    error_attributes = set()
+
     for attribute_name, attribute_value in validate_data.items():
         if not attribute_value:
-            error_attributes.append(attribute_name)
+            error_attributes.add(attribute_name)
         if type(attribute_value) != str:
-            error_attributes.append(attribute_name)
+            error_attributes.add(attribute_name)
+    if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
+        error_attributes.add('Phonenumber is not valid')
     if not isinstance(products, list):
-        error_attributes.append('Products must be in list')
+        error_attributes.add('Products must be in list')
     if error_attributes:
-        response = {"error": f"The following elements are not found: {set(error_attributes)}"}
+        response = {"error": f"The following elements are not found or used invalid data: {error_attributes}"}
         return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     else:
