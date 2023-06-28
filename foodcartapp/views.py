@@ -88,6 +88,10 @@ def register_order(request):
         error_attributes.add('Phonenumber is not valid')
     if not isinstance(products, list):
         error_attributes.add('Products must be in list')
+    for product in products:
+        is_product_exists = Product.objects.filter(id=product['product'])
+        if not is_product_exists:
+            error_attributes.add('Validation error. Requested product does not exist')
     if error_attributes:
         response = {"error": f"The following elements are not found or used invalid data: {error_attributes}"}
         return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
