@@ -69,12 +69,19 @@ def register_order(request):
     phonenumber = frontend_data.get('phonenumber')
     address = frontend_data.get('address')
     products = frontend_data.get('products')
-    if not products:
-        response = {"error": "Products has not been found"}
-        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
+    validate_data = {"firstname": firstname, "lastname": lastname, "phonenumber": phonenumber, "address": address}
+    error_attributes = []
+    for attribute_name, attribute_value in validate_data.items():
+        if not attribute_value:
+            error_attributes.append(attribute_name)
+        if type(attribute_value) != str:
+            error_attributes.append(attribute_name)
     if not isinstance(products, list):
-        response = {"error": "Products must be stored in list"}
+        error_attributes.append('Products must be in list')
+    if error_attributes:
+        response = {"error": f"The following elements are not found: {set(error_attributes)}"}
         return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
+
     else:
         order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
         for product in products:
