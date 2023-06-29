@@ -81,32 +81,10 @@ def register_order(request):
     phonenumber = frontend_data.get('phonenumber')
     address = frontend_data.get('address')
     products = frontend_data.get('products')
-    validate_data = {"firstname": firstname, "lastname": lastname, "address": address}
-    error_attributes = []
-
-    for attribute_name, attribute_value in validate_data.items():
-        if not attribute_value or type(attribute_value) != str:
-            error_attributes.append({"error": f"{attribute_name} has invalid data type or does not exist. Must be string"})
-    try:
-        if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
-            error_attributes.append({"error": f"phonenumber is not valid"})
-    except NumberParseException:
-        error_attributes.append({"error": f"phonenumber is not recognized"})
-    if not products:
-        error_attributes.append({"error": "products list cannot be empty"})
-    if not isinstance(products, list):
-        error_attributes.append({"error": "products must be stored in list"})
+    serializer = ApplicationSerializer(data=frontend_data)
+    serializer.is_valid(raise_exception=True)
+    order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
     for product in products:
-        is_product_exists = Product.objects.filter(id=product['product'])
-        if not is_product_exists:
-            error_attributes.append({"error": f"product does not exist"})
-    if error_attributes:
-        response = {"status": error_attributes}
-        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    else:
-        order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
-        for product in products:
-            Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
-        response = {"status": [{"200": "ok"}]}
-        return Response(response, status=status.HTTP_200_OK)
+        Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
+    response = {"status": [{"200": "ok"}]}
+    return Response(response, status=status.HTTP_200_OK)
