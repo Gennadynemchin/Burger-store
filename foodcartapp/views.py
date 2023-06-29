@@ -88,7 +88,7 @@ def register_order(request):
             error_attributes.append({"error": f"phonenumber is not valid"})
     except NumberParseException:
         error_attributes.append({"error": f"phonenumber is not recognized"})
-    if len(products) < 1:
+    if not products:
         error_attributes.append({"error": "products list cannot be empty"})
     if not isinstance(products, list):
         error_attributes.append({"error": "products must be stored in list"})
