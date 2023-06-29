@@ -8,12 +8,16 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from .models import Product, Order, Item
 import phonenumbers
 from phonenumbers import NumberParseException
+from rest_framework.serializers import ModelSerializer
 
 
 class PhoneNumberSerializer(serializers.Serializer):
     number = PhoneNumberField(region="RU")
 
-
+class ApplicationSerializer(ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'phonenumber', 'address']
 
 
 

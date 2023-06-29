@@ -127,7 +127,7 @@ class RestaurantMenuItem(models.Model):
 class Order(models.Model):
     firstname = models.CharField(max_length=100, db_index=True, null=False)
     lastname = models.CharField(max_length=100, db_index=True, null=False)
-    phonenumber = PhoneNumberField(blank=False, null=False)
+    phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
 
     class Meta:
