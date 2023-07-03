@@ -8,17 +8,11 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from .models import Product, Order, Item
 import phonenumbers
 from phonenumbers import NumberParseException
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ListField, ValidationError
 
 
 class PhoneNumberSerializer(serializers.Serializer):
     number = PhoneNumberField(region="RU")
-
-class ApplicationSerializer(ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address']
-
 
 
 def banners_list_api(request):
@@ -73,6 +67,20 @@ def product_list_api(request):
     })
 
 
+class ItemSerializer(serializers.Serializer):
+    class Meta:
+        model = Item
+        fields = ['product', 'order', 'quantity']
+
+
+class OrderSerializer(ModelSerializer):
+    products = ListField(child=ItemSerializer(), allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+
+
 @api_view(['POST'])
 def register_order(request):
     frontend_data = request.data
@@ -80,11 +88,21 @@ def register_order(request):
     lastname = frontend_data.get('lastname')
     phonenumber = frontend_data.get('phonenumber')
     address = frontend_data.get('address')
-    products = frontend_data.get('products')
-    serializer = ApplicationSerializer(data=frontend_data)
-    serializer.is_valid(raise_exception=True)
+    products = frontend_data.get('products', [])
+
+
+    serializer_order = OrderSerializer(data=frontend_data)
+    serializer_order.is_valid(raise_exception=True)
+
+
+    if not isinstance(products, list):
+        raise ValidationError('Expects products field be a list')
+
+
     order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
     for product in products:
-        Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
+        serializer_item = ItemSerializer(data=product)
+        serializer_item.is_valid(raise_exception=True)
+        Item.objects.create(product=Product.objects.get(id=product['product']), order=order, quantity=product['quantity'])
     response = {"status": [{"200": "ok"}]}
     return Response(response, status=status.HTTP_200_OK)
