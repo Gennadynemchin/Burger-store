@@ -90,19 +90,19 @@ def register_order(request):
     address = frontend_data.get('address')
     products = frontend_data.get('products', [])
 
-
     serializer_order = OrderSerializer(data=frontend_data)
     serializer_order.is_valid(raise_exception=True)
-
 
     if not isinstance(products, list):
         raise ValidationError('Expects products field be a list')
 
-
     order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
     for product in products:
         serializer_item = ItemSerializer(data=product)
-        serializer_item.is_valid(raise_exception=True)
-        Item.objects.create(product=Product.objects.get(id=product['product']), order=order, quantity=product['quantity'])
-    response = {"status": [{"200": "ok"}]}
+        if Product.objects.filter(id=product['product']):
+            serializer_item.is_valid(raise_exception=True)
+            Item.objects.create(product=Product.objects.get(id=product['product']), order=order, quantity=product['quantity'])
+            response = {"status": [{"200": "ok"}]}
+        else:
+            raise ValidationError('Requested id does not exist')
     return Response(response, status=status.HTTP_200_OK)
