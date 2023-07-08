@@ -74,7 +74,7 @@ class ItemSerializer(serializers.Serializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = ListField(child=ItemSerializer(), allow_empty=False)
+    products = ItemSerializer(many=True, allow_empty=False)
 
     class Meta:
         model = Order
@@ -83,26 +83,26 @@ class OrderSerializer(ModelSerializer):
 
 @api_view(['POST'])
 def register_order(request):
-    frontend_data = request.data
-    firstname = frontend_data.get('firstname')
-    lastname = frontend_data.get('lastname')
-    phonenumber = frontend_data.get('phonenumber')
-    address = frontend_data.get('address')
-    products = frontend_data.get('products', [])
-
-    serializer_order = OrderSerializer(data=frontend_data)
+    serializer_order = OrderSerializer(data=request.data)
     serializer_order.is_valid(raise_exception=True)
 
-    if not isinstance(products, list):
-        raise ValidationError('Expects products field be a list')
+    order = Order.objects.create(
+        firstname=serializer_order.validated_data['firstname'],
+        lastname=serializer_order.validated_data['lastname'],
+        phonenumber=serializer_order.validated_data['phonenumber'],
+        address=serializer_order.validated_data['address']
+    )
+    products_fields = serializer_order.validated_data['products']
 
-    order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
-    for product in products:
-        serializer_item = ItemSerializer(data=product)
-        if Product.objects.filter(id=product['product']):
-            serializer_item.is_valid(raise_exception=True)
-            Item.objects.create(product=Product.objects.get(id=product['product']), order=order, quantity=product['quantity'])
+    for product in products_fields:
+        if Product.objects.filter(id=product.get('product')):
+            Item.objects.create(
+                product=Product.objects.get(id=product['product']),
+                order=order,
+                quantity=product['quantity']
+            )
             response = {"status": [{"200": "ok"}]}
         else:
             raise ValidationError('Requested id does not exist')
-    return Response(response, status=status.HTTP_200_OK)
+        return Response(response, status=status.HTTP_200_OK)
+
