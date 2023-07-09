@@ -83,26 +83,23 @@ class OrderSerializer(ModelSerializer):
 
 @api_view(['POST'])
 def register_order(request):
-    serializer_order = OrderSerializer(data=request.data)
-    serializer_order.is_valid(raise_exception=True)
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
     order = Order.objects.create(
-        firstname=serializer_order.validated_data['firstname'],
-        lastname=serializer_order.validated_data['lastname'],
-        phonenumber=serializer_order.validated_data['phonenumber'],
-        address=serializer_order.validated_data['address']
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
     )
-    products_fields = serializer_order.validated_data['products']
 
-    for product in products_fields:
-        if Product.objects.filter(id=product.get('product')):
+    for product in serializer.validated_data['products']:
+        if Product.objects.filter(id=product.get('product')).exists():
             Item.objects.create(
-                product=Product.objects.get(id=product['product']),
+                product=Product.objects.get(id=product.get('product')),
                 order=order,
                 quantity=product['quantity']
             )
-            response = {"status": [{"200": "ok"}]}
         else:
-            raise ValidationError('Requested id does not exist')
-        return Response(response, status=status.HTTP_200_OK)
-
+            raise ValidationError()
+        return Response()
