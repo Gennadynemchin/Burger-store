@@ -8,17 +8,11 @@ from phonenumber_field.serializerfields import PhoneNumberField
 from .models import Product, Order, Item
 import phonenumbers
 from phonenumbers import NumberParseException
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ListField, ValidationError
 
 
 class PhoneNumberSerializer(serializers.Serializer):
     number = PhoneNumberField(region="RU")
-
-class ApplicationSerializer(ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address']
-
 
 
 def banners_list_api(request):
@@ -73,40 +67,53 @@ def product_list_api(request):
     })
 
 
+class ItemSerializer(ModelSerializer):
+    class Meta:
+        model = Item
+        fields = ['id', 'product', 'quantity']
+
+    def check_product(self, product):
+        if not Product.objects.filter(id=product.get('product')):
+            raise ValidationError('ID ERROR')
+
+
+class OrderSerializer(ModelSerializer):
+    products = ItemSerializer(many=True, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+
+
 @api_view(['POST'])
 def register_order(request):
-    frontend_data = request.data
-    firstname = frontend_data.get('firstname')
-    lastname = frontend_data.get('lastname')
-    phonenumber = frontend_data.get('phonenumber')
-    address = frontend_data.get('address')
-    products = frontend_data.get('products')
-    validate_data = {"firstname": firstname, "lastname": lastname, "address": address}
-    error_attributes = []
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    for attribute_name, attribute_value in validate_data.items():
-        if not attribute_value or type(attribute_value) != str:
-            error_attributes.append({"error": f"{attribute_name} has invalid data type or does not exist. Must be string"})
-    try:
-        if not phonenumbers.is_valid_number(phonenumbers.parse(phonenumber, 'RU')):
-            error_attributes.append({"error": f"phonenumber is not valid"})
-    except NumberParseException:
-        error_attributes.append({"error": f"phonenumber is not recognized"})
-    if not products:
-        error_attributes.append({"error": "products list cannot be empty"})
-    if not isinstance(products, list):
-        error_attributes.append({"error": "products must be stored in list"})
-    for product in products:
-        is_product_exists = Product.objects.filter(id=product['product'])
-        if not is_product_exists:
-            error_attributes.append({"error": f"product does not exist"})
-    if error_attributes:
-        response = {"status": error_attributes}
-        return Response(response, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    else:
-        order = Order.objects.create(firstname=firstname, lastname=lastname, phonenumber=phonenumber, address=address)
-        for product in products:
-            Item.objects.create(product=Product.objects.get(id=product['product']), order=order, qty=product['quantity'])
-        response = {"status": [{"200": "ok"}]}
-        return Response(response, status=status.HTTP_200_OK)
+    test_list = []
+    for product in request.data['products']:
+        product_serializer = ItemSerializer(data=product)
+        product_serializer.is_valid(raise_exception=True)
+        product_serializer.check_product(product)
+        test_list.append(product_serializer.validated_data)
+    print('WWWWWWWWWWWW', test_list)
+
+    order = Order.objects.create(
+        firstname=serializer.validated_data['firstname'],
+        lastname=serializer.validated_data['lastname'],
+        phonenumber=serializer.validated_data['phonenumber'],
+        address=serializer.validated_data['address']
+    )
+
+
+    positions = []
+    for _ in product_serializer.validated_data:
+
+        positions.append(Item(
+            order=order,
+            product=Product.objects.get(pk=product_serializer.validated_data['product'].id),
+            quantity=product_serializer.validated_data['quantity']
+        ))
+    Item.objects.bulk_create(positions)
+    return Response()
