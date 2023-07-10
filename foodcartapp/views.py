@@ -67,10 +67,14 @@ def product_list_api(request):
     })
 
 
-class ItemSerializer(serializers.Serializer):
+class ItemSerializer(ModelSerializer):
     class Meta:
         model = Item
-        fields = ['product', 'order', 'quantity']
+        fields = ['id', 'product', 'quantity']
+
+    def check_product(self, product):
+        if not Product.objects.filter(id=product.get('product')):
+            raise ValidationError('ID ERROR')
 
 
 class OrderSerializer(ModelSerializer):
@@ -86,6 +90,15 @@ def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
+
+    test_list = []
+    for product in request.data['products']:
+        product_serializer = ItemSerializer(data=product)
+        product_serializer.is_valid(raise_exception=True)
+        product_serializer.check_product(product)
+        test_list.append(product_serializer.validated_data)
+    print('WWWWWWWWWWWW', test_list)
+
     order = Order.objects.create(
         firstname=serializer.validated_data['firstname'],
         lastname=serializer.validated_data['lastname'],
@@ -93,13 +106,14 @@ def register_order(request):
         address=serializer.validated_data['address']
     )
 
-    for product in serializer.validated_data['products']:
-        if Product.objects.filter(id=product.get('product')).exists():
-            Item.objects.create(
-                product=Product.objects.get(id=product.get('product')),
-                order=order,
-                quantity=product['quantity']
-            )
-        else:
-            raise ValidationError()
-        return Response()
+
+    positions = []
+    for _ in product_serializer.validated_data:
+
+        positions.append(Item(
+            order=order,
+            product=Product.objects.get(pk=product_serializer.validated_data['product'].id),
+            quantity=product_serializer.validated_data['quantity']
+        ))
+    Item.objects.bulk_create(positions)
+    return Response()

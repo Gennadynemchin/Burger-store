@@ -141,11 +141,11 @@ class Order(models.Model):
 class Item(models.Model):
     product = models.ForeignKey(Product, verbose_name='продукт', on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name='items', verbose_name='заказ', on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField(verbose_name='количество', validators=[MinValueValidator(1)])
+    quantity = models.PositiveSmallIntegerField(verbose_name='количество')
 
     class Meta:
         verbose_name = 'позиция'
         verbose_name_plural = 'позиции'
 
     def __str__(self):
-        return f"{self.product.name}, {self.qty}"
+        return f"{self.product.name}, {self.quantity}"
