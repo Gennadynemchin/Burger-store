@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
+from django.db.models import F
 
 
 class Restaurant(models.Model):
@@ -124,11 +125,17 @@ class RestaurantMenuItem(models.Model):
         return f"{self.restaurant.name} - {self.product.name}"
 
 
+class OrdersQuerySet(models.QuerySet):
+    def order_items(self):
+        return self.annotate(total_price=F('items__product__price') * F('items__quantity'))
+
+
 class Order(models.Model):
     firstname = models.CharField(max_length=100, db_index=True, null=False)
     lastname = models.CharField(max_length=100, db_index=True, null=False)
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
+    objects = OrdersQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'заказ'

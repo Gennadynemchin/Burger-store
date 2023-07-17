@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 from foodcartapp.models import Order
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from django.db.models import F, Sum
+from django.db.models import F
 
 
 from foodcartapp.models import Product, Restaurant
@@ -93,7 +93,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.annotate(total_price=F('items__product__price') * F('items__quantity'))
+    orders = Order.objects.order_items()
     context = {
         "orders": orders
     }
