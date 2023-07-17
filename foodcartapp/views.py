@@ -9,6 +9,9 @@ from .models import Product, Order, Item
 import phonenumbers
 from phonenumbers import NumberParseException
 from rest_framework.serializers import ModelSerializer, ListField, ValidationError
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
+import io
 
 
 class PhoneNumberSerializer(serializers.Serializer):
@@ -78,7 +81,7 @@ class ItemSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = ItemSerializer(many=True, allow_empty=False)
+    products = ItemSerializer(many=True, allow_empty=False, write_only=True)
 
     class Meta:
         model = Order
@@ -112,4 +115,4 @@ def register_order(request):
             quantity=product['quantity']
         ))
     Item.objects.bulk_create(positions)
-    return Response()
+    return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
