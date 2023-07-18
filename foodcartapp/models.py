@@ -128,7 +128,7 @@ class RestaurantMenuItem(models.Model):
 class OrdersQuerySet(models.QuerySet):
     def get_order_data(self):
         orders = []
-        for order in self.all():
+        for order in self.all().prefetch_related('items__product'):
             order_items = order.items.all()
             order_sum = sum(item.price for item in order_items)
             orders.append({'id': order.id,
