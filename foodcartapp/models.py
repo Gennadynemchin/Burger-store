@@ -149,6 +149,12 @@ class Item(models.Model):
     product = models.ForeignKey(Product, verbose_name='продукт', on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name='items', verbose_name='заказ', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(verbose_name='количество')
+    price = models.DecimalField(max_digits=10,
+                                decimal_places=2,
+                                default=0,
+                                verbose_name='цена',
+                                validators=[MinValueValidator(limit_value=0)]
+                                )
 
     class Meta:
         verbose_name = 'позиция'

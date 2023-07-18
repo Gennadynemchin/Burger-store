@@ -112,7 +112,8 @@ def register_order(request):
         positions.append(Item(
             order=order,
             product=Product.objects.get(pk=product['product'].id),
-            quantity=product['quantity']
+            quantity=product['quantity'],
+            price=product['product'].price
         ))
     Item.objects.bulk_create(positions)
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
