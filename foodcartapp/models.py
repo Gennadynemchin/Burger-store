@@ -126,8 +126,18 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrdersQuerySet(models.QuerySet):
-    def items_sum(self):
-        return sum(item.price for item in self.items.all())
+    def get_order_data(self):
+        orders = []
+        for order in self.all():
+            order_items = order.items.all()
+            order_sum = sum(item.price for item in order_items)
+            orders.append({'id': order.id,
+                           'sum': order_sum,
+                           'firstname': order.firstname,
+                           'lastname': order.lastname,
+                           'phonenumber': order.phonenumber,
+                           'address': order.address})
+        return orders
 
 
 class Order(models.Model):
@@ -135,6 +145,7 @@ class Order(models.Model):
     lastname = models.CharField(max_length=100, db_index=True, null=False)
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
+    objects = OrdersQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'заказ'
