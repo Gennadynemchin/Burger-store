@@ -12,6 +12,7 @@ from rest_framework.serializers import ModelSerializer, ListField, ValidationErr
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 import io
+from django.db import transaction
 
 
 class PhoneNumberSerializer(serializers.Serializer):
@@ -88,6 +89,7 @@ class OrderSerializer(ModelSerializer):
         fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
@@ -107,6 +109,8 @@ def register_order(request):
         address=serializer.validated_data['address']
     )
 
+    sid = transaction.savepoint()
+
     positions = []
     for product in validated_products:
         positions.append(Item(
@@ -116,4 +120,5 @@ def register_order(request):
             price=product['product'].price
         ))
     Item.objects.bulk_create(positions)
+    transaction.savepoint_commit(sid)
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
