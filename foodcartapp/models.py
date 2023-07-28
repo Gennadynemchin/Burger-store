@@ -137,7 +137,8 @@ class OrdersQuerySet(models.QuerySet):
                            'firstname': order.firstname,
                            'lastname': order.lastname,
                            'phonenumber': order.phonenumber,
-                           'address': order.address})
+                           'address': order.address,
+                           'comment': order.comment})
         return orders
 
 
@@ -155,6 +156,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
     status = models.CharField(max_length=20, choices=CHOICES, default='RECEIVED', db_index=True)
+    comment = models.TextField(max_length=200, null=True, blank=True)
     objects = OrdersQuerySet.as_manager()
 
     class Meta:
