@@ -1,7 +1,10 @@
+import datetime
+
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.db.models import F
+from django.utils import timezone
 
 
 class Restaurant(models.Model):
@@ -157,6 +160,9 @@ class Order(models.Model):
     address = models.CharField(max_length=200, null=False)
     status = models.CharField(max_length=20, choices=CHOICES, default='RECEIVED', db_index=True)
     comment = models.TextField(max_length=200, null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    called_at = models.DateTimeField(blank=True, null=True)
+    delivered_at = models.DateTimeField(blank=True, null=True)
     objects = OrdersQuerySet.as_manager()
 
     class Meta:
