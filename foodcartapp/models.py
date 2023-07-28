@@ -169,7 +169,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     called_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CASH', db_index=True)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CARD', db_index=True)
     objects = OrdersQuerySet.as_manager()
 
     class Meta:
