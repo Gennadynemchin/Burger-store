@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.shortcuts import HttpResponseRedirect
 
 from .models import Product
 from .models import ProductCategory
@@ -116,3 +118,23 @@ class ItemInlineAdmin(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ['firstname', 'lastname', 'phonenumber', 'address']
     inlines = [ItemInlineAdmin]
+
+    def response_post_save_change(self, request, obj):
+        res = super().response_post_save_change(request, obj)
+        next_url = reverse('restaurateur:view_orders')
+        if 'next' in request.GET and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            return HttpResponseRedirect(next_url)
+        else:
+            print(res)
+            return res
+
+
+
+'''
+    def response_post_save_change(self, request, obj):
+        res = super().response_post_save_change(request, obj)
+        if 'next' in request.GET:
+            return HttpResponseRedirect(reverse('restaurateur:view_orders'))
+        else:
+            return res
+'''
