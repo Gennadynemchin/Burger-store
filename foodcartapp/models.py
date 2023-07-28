@@ -132,6 +132,7 @@ class OrdersQuerySet(models.QuerySet):
             order_items = order.items.all()
             order_sum = sum(item.price for item in order_items)
             orders.append({'id': order.id,
+                           'status': order.get_status_display(),
                            'sum': order_sum,
                            'firstname': order.firstname,
                            'lastname': order.lastname,
@@ -141,10 +142,19 @@ class OrdersQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+
+    CHOICES = (
+        ('RC', 'RECEIVED'),
+        ('PR', 'PREPARING'),
+        ('DL', 'DELIVERING'),
+        ('FN', 'FINISHED'),
+    )
+
     firstname = models.CharField(max_length=100, db_index=True, null=False)
     lastname = models.CharField(max_length=100, db_index=True, null=False)
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
+    status = models.CharField(max_length=20, choices=CHOICES, default='RECEIVED')
     objects = OrdersQuerySet.as_manager()
 
     class Meta:
