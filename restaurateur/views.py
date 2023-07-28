@@ -93,7 +93,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.get_order_data()
+    orders = Order.objects.get_active_orders()
     context = {
         "orders": orders
     }

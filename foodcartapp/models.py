@@ -126,9 +126,9 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrdersQuerySet(models.QuerySet):
-    def get_order_data(self):
+    def get_active_orders(self):
         orders = []
-        for order in self.all().prefetch_related('items__product'):
+        for order in self.exclude(status='FN').prefetch_related('items__product'):
             order_items = order.items.all()
             order_sum = sum(item.price for item in order_items)
             orders.append({'id': order.id,
@@ -154,7 +154,7 @@ class Order(models.Model):
     lastname = models.CharField(max_length=100, db_index=True, null=False)
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
-    status = models.CharField(max_length=20, choices=CHOICES, default='RECEIVED')
+    status = models.CharField(max_length=20, choices=CHOICES, default='RECEIVED', db_index=True)
     objects = OrdersQuerySet.as_manager()
 
     class Meta:
