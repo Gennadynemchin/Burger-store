@@ -7,6 +7,7 @@ from foodcartapp.models import Order
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 from django.db.models import F
+import collections
 
 
 from foodcartapp.models import Product, Restaurant
@@ -93,8 +94,22 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    Restaurant.objects.get_restaurants_menu()
     orders = Order.objects.get_active_orders()
+    menu_items = Restaurant.objects.get_restaurants_menu()
+    output_orders = []
+    for order in orders:
+        order_products = []
+        for item in order['items']:
+            order_products.append(item.product.name)
+
+        available_restaurants = []
+        for item in menu_items:
+            if set(order_products).issubset(list(item.values())[0]):
+                available_restaurants.append(list(item.keys())[0])
+        order['available_restaurants'] = available_restaurants
+        output_orders.append(order)
     context = {
-        "orders": orders
+        "orders": output_orders
     }
     return render(request, template_name='order_items.html', context=context)

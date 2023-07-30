@@ -7,6 +7,36 @@ from django.db.models import F
 from django.utils import timezone
 
 
+class OrdersQuerySet(models.QuerySet):
+    def get_active_orders(self):
+        orders = []
+        for order in self.exclude(status='FN').prefetch_related('items__product'):
+            order_items = order.items.all()
+            order_sum = sum(item.price for item in order_items)
+            orders.append({'id': order.id,
+                           'status': order.get_status_display(),
+                           'items': order_items,
+                           'sum': order_sum,
+                           'firstname': order.firstname,
+                           'lastname': order.lastname,
+                           'phonenumber': order.phonenumber,
+                           'address': order.address,
+                           'comment': order.comment,
+                           'payment_method': order.get_payment_method_display()})
+        return orders
+
+
+class RestaurantQuerySet(models.QuerySet):
+    def get_restaurants_menu(self):
+        context = []
+        for restaurant in self.all():
+            products_in_menu = []
+            for restaurant_menu in restaurant.menu_items.all():
+                products_in_menu.append(restaurant_menu.product.name)
+            context.append({restaurant.name: products_in_menu})
+        return context
+
+
 class Restaurant(models.Model):
     name = models.CharField(
         'название',
@@ -22,6 +52,8 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
+
+    objects = RestaurantQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'ресторан'
@@ -126,24 +158,6 @@ class RestaurantMenuItem(models.Model):
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
-
-
-class OrdersQuerySet(models.QuerySet):
-    def get_active_orders(self):
-        orders = []
-        for order in self.exclude(status='FN').prefetch_related('items__product'):
-            order_items = order.items.all()
-            order_sum = sum(item.price for item in order_items)
-            orders.append({'id': order.id,
-                           'status': order.get_status_display(),
-                           'sum': order_sum,
-                           'firstname': order.firstname,
-                           'lastname': order.lastname,
-                           'phonenumber': order.phonenumber,
-                           'address': order.address,
-                           'comment': order.comment,
-                           'payment_method': order.get_payment_method_display()})
-        return orders
 
 
 class Order(models.Model):
