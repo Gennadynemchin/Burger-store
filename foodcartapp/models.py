@@ -189,6 +189,7 @@ class Order(models.Model):
                                     verbose_name='ресторан, принявший заказ',
                                     related_name='orders',
                                     null=True,
+                                    blank=True,
                                     on_delete=models.SET_NULL)
     objects = OrdersQuerySet.as_manager()
 

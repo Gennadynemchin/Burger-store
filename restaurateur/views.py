@@ -109,6 +109,12 @@ def view_orders(request):
                 available_restaurants.append(list(item.keys())[0])
         order['available_restaurants'] = available_restaurants
         output_orders.append(order)
+
+        if order['prepared_by']:
+            update_order_status = Order.objects.get(id=order['id'])
+            update_order_status.status = 'PR'
+            update_order_status.save()
+
     context = {
         "orders": output_orders
     }
