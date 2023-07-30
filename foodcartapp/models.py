@@ -22,7 +22,8 @@ class OrdersQuerySet(models.QuerySet):
                            'phonenumber': order.phonenumber,
                            'address': order.address,
                            'comment': order.comment,
-                           'payment_method': order.get_payment_method_display()})
+                           'payment_method': order.get_payment_method_display(),
+                           'prepared_by': order.prepared_by})
         return orders
 
 
@@ -184,6 +185,11 @@ class Order(models.Model):
     called_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CARD', db_index=True)
+    prepared_by = models.ForeignKey(Restaurant,
+                                    verbose_name='ресторан, принявший заказ',
+                                    related_name='orders',
+                                    null=True,
+                                    on_delete=models.SET_NULL)
     objects = OrdersQuerySet.as_manager()
 
     class Meta:

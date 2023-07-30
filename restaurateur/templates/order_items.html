@@ -34,9 +34,15 @@
         <td>{{order.phonenumber}}</td>
         <td>{{order.address}}</td>
         <td>{{order.comment|default:''}}</td>
-        <td>{% for restaurant in order.available_restaurants %}
-        {{restaurant}}<br>
-        {% endfor %}</td>
+        <td>
+          {% if order.prepared_by %}
+            <p>&#x2022;{{order.prepared_by}}</p>
+          {% else %}
+            {% for restaurant in order.available_restaurants %}
+              <p>&#x2022;{{restaurant}}</p>
+            {% endfor %}
+          {% endif %}
+        </td>
         <td><a href="{% url 'admin:foodcartapp_order_change' order.id %}?next=">ред.</a></td>
       </tr>
     {% endfor %}
