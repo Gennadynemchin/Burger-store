@@ -7,3 +7,4 @@ env
 /db.sqlite3
 /star_burger/.env
 /media/
+/.env

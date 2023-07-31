@@ -116,13 +116,9 @@ def view_orders(request):
             if set(order_products).issubset(restaurant_menu):
                 coordinates_from = fetch_coordinates(api_key, restaurant)
                 coordinates_to = fetch_coordinates(api_key, order['address'])
-                distance = calculate_distance(coordinates_from[0],
-                                              coordinates_from[1],
-                                              coordinates_to[0],
-                                              coordinates_to[1])
-
+                distance = calculate_distance(coordinates_from,
+                                              coordinates_to)
                 available_restaurants.append({restaurant: distance})
-
         order['available_restaurants'] = available_restaurants
         output_orders.append(order)
 
