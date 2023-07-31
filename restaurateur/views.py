@@ -1,3 +1,4 @@
+import os
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -6,6 +7,8 @@ from django.contrib.auth.decorators import user_passes_test
 from foodcartapp.models import Order
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
+from .map_tools import fetch_coordinates, calculate_distance
+from dotenv import load_dotenv
 from django.db.models import F
 import collections
 
@@ -94,6 +97,9 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
+    load_dotenv()
+    api_key = os.getenv('YANDEX_API_KEY')
+
     Restaurant.objects.get_restaurants_menu()
     orders = Order.objects.get_active_orders()
     menu_items = Restaurant.objects.get_restaurants_menu()
@@ -105,8 +111,18 @@ def view_orders(request):
 
         available_restaurants = []
         for item in menu_items:
-            if set(order_products).issubset(list(item.values())[0]):
-                available_restaurants.append(list(item.keys())[0])
+            restaurant = list(item.keys())[0]
+            restaurant_menu = list(item.values())[0]
+            if set(order_products).issubset(restaurant_menu):
+                coordinates_from = fetch_coordinates(api_key, restaurant)
+                coordinates_to = fetch_coordinates(api_key, order['address'])
+                distance = calculate_distance(coordinates_from[0],
+                                              coordinates_from[1],
+                                              coordinates_to[0],
+                                              coordinates_to[1])
+
+                available_restaurants.append({restaurant: distance})
+
         order['available_restaurants'] = available_restaurants
         output_orders.append(order)
 

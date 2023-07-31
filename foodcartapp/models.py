@@ -164,27 +164,27 @@ class RestaurantMenuItem(models.Model):
 class Order(models.Model):
 
     ORDER_STATUS = (
-        ('RC', 'RECEIVED'),
-        ('PR', 'PREPARING'),
-        ('DL', 'DELIVERING'),
-        ('FN', 'FINISHED'),
+        ('1', 'RECEIVED'),
+        ('2', 'PREPARING'),
+        ('3', 'DELIVERING'),
+        ('4', 'FINISHED'),
     )
 
     PAYMENT_METHODS = (
-        ('CS', 'CASH'),
-        ('CD', 'CARD'),
+        ('1', 'CARD'),
+        ('2', 'CASH'),
     )
 
     firstname = models.CharField(max_length=100, db_index=True, null=False)
     lastname = models.CharField(max_length=100, db_index=True, null=False)
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
-    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='RECEIVED', db_index=True)
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='1', db_index=True)
     comment = models.TextField(max_length=200, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     called_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CARD', db_index=True)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='1', db_index=True)
     prepared_by = models.ForeignKey(Restaurant,
                                     verbose_name='ресторан, принявший заказ',
                                     related_name='orders',

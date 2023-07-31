@@ -126,14 +126,3 @@ class OrderAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(next_url)
         else:
             return res
-
-
-
-'''
-    def response_post_save_change(self, request, obj):
-        res = super().response_post_save_change(request, obj)
-        if 'next' in request.GET:
-            return HttpResponseRedirect(reverse('restaurateur:view_orders'))
-        else:
-            return res
-'''
