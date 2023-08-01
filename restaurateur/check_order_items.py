@@ -17,6 +17,6 @@ def compare_order_menu(api_key, orders, menu_items):
                 coordinates_to = fetch_coordinates(api_key, order['address'])
                 distance = calculate_distance(coordinates_from, coordinates_to)
                 available_restaurants.append({restaurant: distance})
-        order['available_restaurants'] = available_restaurants
+        order['available_restaurants'] = sorted(available_restaurants, key=lambda x: list(x.values())[0])
         output_orders.append(order)
     return output_orders

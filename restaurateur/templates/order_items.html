@@ -39,8 +39,8 @@
             <p>&#x2022; Готовит ресторан: {{order.prepared_by}}</p>
           {% else %}
             {% for restaurant in order.available_restaurants %}
-              {% for key, value in restaurant.items %}
-                <p>&#x2022; {{key}} - {{value}}</p>
+              {% for restaurant_name, distance in restaurant.items %}
+                <p>&#x2022; {{restaurant_name}} - {{distance}}</p>
               {% endfor %}
             {% endfor %}
           {% endif %}
