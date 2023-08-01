@@ -11,8 +11,12 @@ def fetch_coordinates(apikey, address):
         "apikey": apikey,
         "format": "json",
     })
-    response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+
+    try:
+        response.raise_for_status()
+        found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+    except requests.exceptions.HTTPError:
+        return None
 
     if not found_places:
         return None
