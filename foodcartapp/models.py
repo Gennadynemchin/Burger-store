@@ -1,16 +1,13 @@
-import datetime
-
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
-from django.db.models import F
 from django.utils import timezone
 
 
 class OrdersQuerySet(models.QuerySet):
     def get_active_orders(self):
         orders = []
-        for order in self.exclude(status='FN').prefetch_related('items__product'):
+        for order in self.exclude(status='4').prefetch_related('items__product', 'prepared_by'):
             order_items = order.items.all()
             order_sum = sum(item.price for item in order_items)
             orders.append({'id': order.id,
@@ -30,11 +27,21 @@ class OrdersQuerySet(models.QuerySet):
 class RestaurantQuerySet(models.QuerySet):
     def get_restaurants_menu(self):
         context = []
+        '''
         for restaurant in self.all():
             products_in_menu = []
-            for restaurant_menu in restaurant.menu_items.all():
+            for restaurant_menu in restaurant.menu_items.all().select_related('product'):
                 products_in_menu.append(restaurant_menu.product.name)
-            context.append({restaurant.name: products_in_menu})
+        '''
+        # Fetch all restaurants with their related menu_items and products in a single query
+        restaurants_with_menu_items = self.all().prefetch_related('menu_items__product')
+
+        # Now, you can access the menu_items and products for each restaurant without additional queries
+        for restaurant in restaurants_with_menu_items:
+            products_in_menu = [menu_item.product.name for menu_item in restaurant.menu_items.all()]
+            # Rest of your code using products_in_menu
+
+            context.append({restaurant.name: products_in_menu, 'restaurant_address': restaurant.address})
         return context
 
 

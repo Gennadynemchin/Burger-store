@@ -36,10 +36,12 @@
         <td>{{order.comment|default:''}}</td>
         <td>
           {% if order.prepared_by %}
-            <p>&#x2022;{{order.prepared_by}}</p>
+            <p>&#x2022; Готовит ресторан: {{order.prepared_by}}</p>
           {% else %}
             {% for restaurant in order.available_restaurants %}
-              <p>&#x2022;{{restaurant}}</p>
+              {% for key, value in restaurant.items %}
+                <p>&#x2022; {{key}} - {{value}}</p>
+              {% endfor %}
             {% endfor %}
           {% endif %}
         </td>

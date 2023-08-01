@@ -7,13 +7,10 @@ from django.contrib.auth.decorators import user_passes_test
 from foodcartapp.models import Order
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from .map_tools import fetch_coordinates, calculate_distance
+from .check_order_items import compare_order_menu
 from dotenv import load_dotenv
-from django.db.models import F
-import collections
-
-
 from foodcartapp.models import Product, Restaurant
+from django.db.models import When, Case, Value, CharField, F
 
 
 class Login(forms.Form):
@@ -100,34 +97,18 @@ def view_orders(request):
     load_dotenv()
     api_key = os.getenv('YANDEX_API_KEY')
 
-    Restaurant.objects.get_restaurants_menu()
     orders = Order.objects.get_active_orders()
     menu_items = Restaurant.objects.get_restaurants_menu()
-    output_orders = []
-    for order in orders:
-        order_products = []
-        for item in order['items']:
-            order_products.append(item.product.name)
 
-        available_restaurants = []
-        for item in menu_items:
-            restaurant = list(item.keys())[0]
-            restaurant_menu = list(item.values())[0]
-            if set(order_products).issubset(restaurant_menu):
-                coordinates_from = fetch_coordinates(api_key, restaurant)
-                coordinates_to = fetch_coordinates(api_key, order['address'])
-                distance = calculate_distance(coordinates_from,
-                                              coordinates_to)
-                available_restaurants.append({restaurant: distance})
-        order['available_restaurants'] = available_restaurants
-        output_orders.append(order)
+    compared = compare_order_menu(api_key, orders, menu_items)
 
-        if order['prepared_by']:
-            update_order_status = Order.objects.get(id=order['id'])
-            update_order_status.status = 'PR'
-            update_order_status.save()
+    for order in compared:
+        order_status = Order.objects.get(id=order['id'])
+        if order['prepared_by'] and order_status.status == '1':
+            order_status.status = '2'
+            order_status.save()
 
     context = {
-        "orders": output_orders
+        "orders": compared
     }
     return render(request, template_name='order_items.html', context=context)
