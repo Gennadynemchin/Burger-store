@@ -11,6 +11,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
 from .models import Item
+from restaurateur.check_order_items import get_restaurants_by_order_id
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -126,3 +127,10 @@ class OrderAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(next_url)
         else:
             return res
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        order_id = request.resolver_match.kwargs['object_id']
+        avaliable_restaurants = get_restaurants_by_order_id(order_id)
+        if db_field.name == 'prepared_by':
+            kwargs['queryset'] = Restaurant.objects.filter(name__in=avaliable_restaurants)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)

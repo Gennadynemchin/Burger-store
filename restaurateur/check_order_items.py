@@ -1,4 +1,5 @@
 from .map_tools import fetch_coordinates, calculate_distance
+from foodcartapp.models import Restaurant, Order
 
 
 def compare_order_menu(api_key, orders, menu_items):
@@ -20,3 +21,18 @@ def compare_order_menu(api_key, orders, menu_items):
         order['available_restaurants'] = sorted(available_restaurants, key=lambda x: list(x.values())[0])
         output_orders.append(order)
     return output_orders
+
+
+def get_restaurants_by_order_id(order_id):
+    order = Order.objects.get(id=order_id)
+    order_items = order.items.all()
+    order_products = [item.product.name for item in order_items]
+
+    restaurants_menu = Restaurant.objects.get_restaurants_menu()
+    available_restaurants = []
+    for item in restaurants_menu:
+        restaurant = list(item.keys())[0]
+        restaurant_menu = list(item.values())[0]
+        if set(order_products).issubset(restaurant_menu):
+            available_restaurants.append(restaurant)
+    return available_restaurants
