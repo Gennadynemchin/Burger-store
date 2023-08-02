@@ -27,20 +27,9 @@ class OrdersQuerySet(models.QuerySet):
 class RestaurantQuerySet(models.QuerySet):
     def get_restaurants_menu(self):
         context = []
-        '''
-        for restaurant in self.all():
-            products_in_menu = []
-            for restaurant_menu in restaurant.menu_items.all().select_related('product'):
-                products_in_menu.append(restaurant_menu.product.name)
-        '''
-        # Fetch all restaurants with their related menu_items and products in a single query
         restaurants_with_menu_items = self.all().prefetch_related('menu_items__product')
-
-        # Now, you can access the menu_items and products for each restaurant without additional queries
         for restaurant in restaurants_with_menu_items:
             products_in_menu = [menu_item.product.name for menu_item in restaurant.menu_items.all()]
-            # Rest of your code using products_in_menu
-
             context.append({restaurant.name: products_in_menu, 'restaurant_address': restaurant.address})
         return context
 

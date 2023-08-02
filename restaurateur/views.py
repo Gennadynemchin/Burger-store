@@ -10,7 +10,6 @@ from django.contrib.auth import views as auth_views
 from .check_order_items import compare_order_menu
 from dotenv import load_dotenv
 from foodcartapp.models import Product, Restaurant
-from django.db.models import When, Case, Value, CharField, F
 
 
 class Login(forms.Form):
