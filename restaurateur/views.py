@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from foodcartapp.models import Order
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-from .check_order_items import compare_order_menu
+from maptools.views import compare_order_menu
 from dotenv import load_dotenv
 from foodcartapp.models import Product, Restaurant
 

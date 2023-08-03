@@ -11,7 +11,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
 from .models import Item
-from restaurateur.check_order_items import get_restaurants_by_order_id
+from maptools.views import get_restaurants_by_order_id
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
