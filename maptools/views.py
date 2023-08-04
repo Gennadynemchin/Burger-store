@@ -1,8 +1,8 @@
-import os
 import requests
-from dotenv import load_dotenv
 from geopy import distance
-from foodcartapp.models import Restaurant, Order
+
+from foodcartapp.models import Order
+from foodcartapp.models import Restaurant
 from maptools.models import PlaceGeoInfo
 
 
@@ -47,6 +47,7 @@ def update_geo_info(api_key, address):
                                                     address=address)
         return place_to_save
 
+
 def compare_order_menu(api_key, orders, menu_items):
     # extract products from each order
     output_orders = []
@@ -57,12 +58,10 @@ def compare_order_menu(api_key, orders, menu_items):
         # compare order items and restaurant menu. Add distance to restaurants
         available_restaurants = []
         for item in menu_items:
-            restaurant = list(item.keys())[0]
-            restaurant_menu = list(item.values())[0]
-            if set(order_products).issubset(restaurant_menu):
+            if set(order_products).issubset(item['restaurant_products']):
                 delivery_address = update_geo_info(api_key, item['restaurant_address'])
                 distance = calculate_distance((delivery_address.lat, delivery_address.lon), (order_address.lat, order_address.lon))
-                available_restaurants.append({restaurant: distance})
+                available_restaurants.append({item['restaurant_name']: distance})
         order['available_restaurants'] = sorted(available_restaurants, key=lambda x: list(x.values())[0])
         output_orders.append(order)
     return output_orders
@@ -72,12 +71,11 @@ def get_restaurants_by_order_id(order_id):
     order = Order.objects.get(id=order_id)
     order_items = order.items.all()
     order_products = [item.product.name for item in order_items]
-
     restaurants_menu = Restaurant.objects.get_restaurants_menu()
     available_restaurants = []
     for item in restaurants_menu:
-        restaurant = list(item.keys())[0]
-        restaurant_menu = list(item.values())[0]
-        if set(order_products).issubset(restaurant_menu):
-            available_restaurants.append(restaurant)
+        if set(order_products).issubset(item['restaurant_products']):
+            available_restaurants.append(item['restaurant_name'])
     return available_restaurants
+
+

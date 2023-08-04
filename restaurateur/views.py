@@ -1,15 +1,20 @@
 import os
+
 from django import forms
-from django.shortcuts import redirect, render
-from django.views import View
-from django.urls import reverse_lazy
-from django.contrib.auth.decorators import user_passes_test
-from foodcartapp.models import Order
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
-from maptools.views import compare_order_menu
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.urls import reverse_lazy
+from django.views import View
 from dotenv import load_dotenv
-from foodcartapp.models import Product, Restaurant
+
+from foodcartapp.models import Order
+from foodcartapp.models import Product
+from foodcartapp.models import Restaurant
+from maptools.views import compare_order_menu
 
 
 class Login(forms.Form):

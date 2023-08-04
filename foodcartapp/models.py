@@ -1,7 +1,7 @@
-from django.db import models
 from django.core.validators import MinValueValidator
-from phonenumber_field.modelfields import PhoneNumberField
+from django.db import models
 from django.utils import timezone
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class OrdersQuerySet(models.QuerySet):
@@ -30,7 +30,11 @@ class RestaurantQuerySet(models.QuerySet):
         restaurants_with_menu_items = self.all().prefetch_related('menu_items__product')
         for restaurant in restaurants_with_menu_items:
             products_in_menu = [menu_item.product.name for menu_item in restaurant.menu_items.all()]
-            context.append({restaurant.name: products_in_menu, 'restaurant_address': restaurant.address})
+            context.append({
+                'restaurant_name': restaurant.name,
+                'restaurant_products': products_in_menu,
+                'restaurant_address': restaurant.address
+            })
         return context
 
 

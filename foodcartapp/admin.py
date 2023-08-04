@@ -1,17 +1,17 @@
 from django.contrib import admin
+from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.shortcuts import HttpResponseRedirect
 
+from maptools.views import get_restaurants_by_order_id
+from .models import Item
+from .models import Order
 from .models import Product
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
-from .models import Order
-from .models import Item
-from maptools.views import get_restaurants_by_order_id
 
 
 class RestaurantMenuItemInline(admin.TabularInline):

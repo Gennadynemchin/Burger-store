@@ -1,18 +1,17 @@
+from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
+from phonenumber_field.serializerfields import PhoneNumberField
+from rest_framework import serializers
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import renderers, serializers
-from phonenumber_field.serializerfields import PhoneNumberField
-from .models import Product, Order, Item
-import phonenumbers
-from phonenumbers import NumberParseException
-from rest_framework.serializers import ModelSerializer, ListField, ValidationError
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-import io
-from django.db import transaction
+from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ValidationError
+
+from .models import Item
+from .models import Order
+from .models import Product
 
 
 class PhoneNumberSerializer(serializers.Serializer):
