@@ -3,6 +3,7 @@ import requests
 from dotenv import load_dotenv
 from geopy import distance
 from foodcartapp.models import Restaurant, Order
+from maptools.models import PlaceGeoInfo
 
 
 def fetch_coordinates(apikey, address):
@@ -29,17 +30,29 @@ def fetch_coordinates(apikey, address):
 
 def calculate_distance(point_from, point_to):
     try:
-        result = distance.distance(point_from, point_to).km
+        result = round(distance.distance(point_from, point_to).km, 1)
     except TypeError:
         return 'Distance has not been calculated'
     return result
 
+
+def update_geo_info(api_key, address):
+    compared_address = PlaceGeoInfo.objects.filter(address=address)
+    if compared_address:
+        return compared_address[0]
+    else:
+        coordinates = fetch_coordinates(api_key, address)
+        place_to_save = PlaceGeoInfo.objects.create(lat=coordinates[0],
+                                                    lon=coordinates[1],
+                                                    address=address)
+        return place_to_save
 
 def compare_order_menu(api_key, orders, menu_items):
     # extract products from each order
     output_orders = []
     for order in orders:
         order_products = [item.product.name for item in order['items']]
+        order_address = update_geo_info(api_key, order['address'])
 
         # compare order items and restaurant menu. Add distance to restaurants
         available_restaurants = []
@@ -47,9 +60,8 @@ def compare_order_menu(api_key, orders, menu_items):
             restaurant = list(item.keys())[0]
             restaurant_menu = list(item.values())[0]
             if set(order_products).issubset(restaurant_menu):
-                coordinates_from = fetch_coordinates(api_key, item['restaurant_address'])
-                coordinates_to = fetch_coordinates(api_key, order['address'])
-                distance = calculate_distance(coordinates_from, coordinates_to)
+                delivery_address = update_geo_info(api_key, item['restaurant_address'])
+                distance = calculate_distance((delivery_address.lat, delivery_address.lon), (order_address.lat, order_address.lon))
                 available_restaurants.append({restaurant: distance})
         order['available_restaurants'] = sorted(available_restaurants, key=lambda x: list(x.values())[0])
         output_orders.append(order)
