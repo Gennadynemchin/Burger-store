@@ -54,8 +54,8 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-Создать файл `.env` в каталоге `star_burger/` и положите туда:
-
+В каталоге `star_burger/settings.py` нужно расположить ключи `SWCRET_KEY` приложения
+Django и `YANDEX_API_KEY` для доступа к геосервисам Yandex:
 `SECRET_KEY` и `YANDEX_API_KEY`. Получить ключ Yandex можно в кабинете разработчика.
 Необходимо выбрать: подключить API - JavaScript API и HTTP Геокодер.
 Более подробно: https://developer.tech.yandex.ru/
@@ -63,6 +63,7 @@ pip install -r requirements.txt
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 YANDEX_API_KEY=<KEY>
 ```
+Пример заполнения находится в файле `example.settings.py`
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
 
@@ -147,7 +148,7 @@ Parcel будет следить за файлами в каталоге `bundle
 ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
 ```
 
-Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
+Настроить бэкенд: необоходимо првоерить наполнение `settings.py` в каталоге `star_burger/`:
 
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.

@@ -15,6 +15,7 @@ from foodcartapp.models import Order
 from foodcartapp.models import Product
 from foodcartapp.models import Restaurant
 from maptools.views import compare_order_menu
+from star_burger.settings import YANDEX_API_KEY
 
 
 class Login(forms.Form):
@@ -99,8 +100,8 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     load_dotenv()
-    api_key = os.getenv('YANDEX_API_KEY')
-
+    # api_key = os.getenv('YANDEX_API_KEY')
+    api_key = YANDEX_API_KEY
     orders = Order.objects.get_active_orders()
     menu_items = Restaurant.objects.get_restaurants_menu()
 

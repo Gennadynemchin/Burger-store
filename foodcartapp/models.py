@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
@@ -180,7 +180,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField(max_length=14, blank=False, null=False)
     address = models.CharField(max_length=200, null=False)
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default='1', db_index=True)
-    comment = models.TextField(max_length=200, null=True, blank=True)
+    comment = models.TextField(max_length=200, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     called_at = models.DateTimeField(blank=True, null=True)
     delivered_at = models.DateTimeField(blank=True, null=True)
@@ -204,10 +204,11 @@ class Order(models.Model):
 class Item(models.Model):
     product = models.ForeignKey(Product, verbose_name='продукт', on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name='items', verbose_name='заказ', on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField(verbose_name='количество')
-    price = models.DecimalField(max_digits=10,
+    quantity = models.PositiveSmallIntegerField(verbose_name='количество',
+                                                validators=[MaxValueValidator(limit_value=10)]
+                                                )
+    price = models.DecimalField(max_digits=6,
                                 decimal_places=2,
-                                default=0,
                                 verbose_name='цена',
                                 validators=[MinValueValidator(limit_value=0)]
                                 )
