@@ -1,21 +1,15 @@
 from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
-from phonenumber_field.serializerfields import PhoneNumberField
-from rest_framework import serializers
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
-from rest_framework.serializers import ValidationError
+
 
 from .models import Item
 from .models import Order
 from .models import Product
-
-
-class PhoneNumberSerializer(serializers.Serializer):
-    number = PhoneNumberField(region="RU")
+from .serializers import ItemSerializer, OrderSerializer
 
 
 def banners_list_api(request):
@@ -68,24 +62,6 @@ def product_list_api(request):
         'ensure_ascii': False,
         'indent': 4,
     })
-
-
-class ItemSerializer(ModelSerializer):
-    class Meta:
-        model = Item
-        fields = ['id', 'product', 'quantity']
-
-    def check_product(self, product):
-        if not Product.objects.filter(id=product.get('product')):
-            raise ValidationError('ID ERROR')
-
-
-class OrderSerializer(ModelSerializer):
-    products = ItemSerializer(many=True, allow_empty=False, write_only=True)
-
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
 
 
 @transaction.atomic
