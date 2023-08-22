@@ -5,8 +5,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from .models import Item
-from .models import Order
 from .models import Product
 from .serializers import ItemSerializer
 from .serializers import OrderSerializer
