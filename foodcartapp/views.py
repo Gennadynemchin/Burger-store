@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from .models import Product
 from .serializers import ItemSerializer
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, PhoneNumberSerializer
 
 
 def banners_list_api(request):
