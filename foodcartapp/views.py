@@ -65,13 +65,9 @@ def product_list_api(request):
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
-    serializer = OrderSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    for product in request.data['products']:
-        product_serializer = ItemSerializer(data=product)
-        product_serializer.is_valid(raise_exception=True)
-        product_serializer.check_product(product)
+    order_serializer = OrderSerializer(data=request.data)
+    order_serializer.is_valid(raise_exception=True)
     sid = transaction.savepoint()
-    order = serializer.save()
+    order = order_serializer.save()
     transaction.savepoint_commit(sid)
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)

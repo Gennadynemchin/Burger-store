@@ -205,7 +205,7 @@ class Item(models.Model):
     product = models.ForeignKey(Product, verbose_name='продукт', on_delete=models.CASCADE)
     order = models.ForeignKey(Order, related_name='items', verbose_name='заказ', on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(verbose_name='количество',
-                                                validators=[MaxValueValidator(limit_value=10)]
+                                                validators=[MinValueValidator(limit_value=1)]
                                                 )
     price = models.DecimalField(max_digits=6,
                                 decimal_places=2,

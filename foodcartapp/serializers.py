@@ -17,13 +17,6 @@ class ItemSerializer(ModelSerializer):
         model = Item
         fields = ['id', 'product', 'quantity']
 
-    def check_product(self, product):
-        if not Product.objects.filter(id=product.get('product')):
-            raise ValidationError('ID ERROR')
-
-    def create(self, validated__data):
-        return Item.objects.create()
-
 
 class OrderSerializer(ModelSerializer):
     products = ItemSerializer(many=True, allow_empty=False, write_only=True)
@@ -48,6 +41,3 @@ class OrderSerializer(ModelSerializer):
             ))
         Item.objects.bulk_create(order_products)
         return order
-
-
-
